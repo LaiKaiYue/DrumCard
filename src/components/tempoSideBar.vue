@@ -11,26 +11,30 @@
     </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, inject } from 'vue'
 import beatTypeList from './tempoLib.ts'
+import { IStore } from '@/store'
 
-export default {
-  inject: ['store'],
-  name: 'tempoSideBar',
+export default defineComponent({
   props: {
     msg: String
   },
-  data: function () {
-    return {
-      beatTypeList
+  setup (props) {
+    const store = inject<IStore>('store')
+
+    const setBeatType = (_beatType) => {
+      if (store) {
+        store.beatType.value = _beatType
+      }
     }
-  },
-  methods: {
-    setBeatType (beatType) {
-      this.store.beatType.value = beatType
+
+    return {
+      beatTypeList,
+      setBeatType
     }
   }
-}
+})
 </script>
 
 <style>

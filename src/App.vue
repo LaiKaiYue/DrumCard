@@ -74,13 +74,14 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
-// import tempoSideBar from './components/tempoSideBar.vue'
+import tempoSideBar from './components/tempoSideBar.vue'
 import sheetMusic from './components/sheetMusic.vue'
 
 export default defineComponent({
   name: 'App',
   components: {
-    sheetMusic
+    sheetMusic,
+    tempoSideBar
   },
   setup () {
     const layerType = ref<string>('layer1')

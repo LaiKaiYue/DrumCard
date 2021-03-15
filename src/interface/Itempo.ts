@@ -18,7 +18,3 @@ export interface ItxtLayer {
   main: string;
   repeat: string;
 }
-
-export interface Iline {
-  [index: number]: ItxtLayer;
-}

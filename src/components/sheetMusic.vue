@@ -53,9 +53,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, computed, ref, toRefs } from 'vue'
+import { defineComponent, inject, computed, ref } from 'vue'
 import { IStore } from '@/store'
-import { Iline, Ibeat } from '@/interface/Itempo'
+import { ItxtLayer, Ibeat } from '@/interface/Itempo'
 import tempoLib from './tempoLib'
 import Point from './Point'
 
@@ -69,12 +69,12 @@ export default defineComponent({
     },
     layerType: {
       type: String,
-      default: 'layer1'
-      // required: true
+      // default: 'layer1'
+      required: true
     }
   },
   setup (props) {
-    const lineTmp = ref<Iline>([
+    const lineTmp = ref<Array<ItxtLayer>>([
       { layer1: '1234567890-=0000', layer2: 'qwertyuiqwertyui', main: 'A1', repeat: '*3' }
     ])
     const filename = ref<string>('')
@@ -118,12 +118,12 @@ export default defineComponent({
       if (keyType === 'next') {
         const isAddNewLine = selected_beat.moveRight()
         if (isAddNewLine) {
-          // lineTmp.value.push({
-          //   layer1: '0000000000000000',
-          //   layer2: ']]]]]]]]]]]]]]]]',
-          //   main: '',
-          //   repeat: ''
-          // })
+          lineTmp.value.push({
+            layer1: '0000000000000000',
+            layer2: ']]]]]]]]]]]]]]]]',
+            main: '',
+            repeat: ''
+          })
         }
       } else {
         const isDelLine = selected_beat.moveLeft()
@@ -190,10 +190,26 @@ export default defineComponent({
       selected_beat.setPoint(line, measure * 4 + beatIdx)
     }
 
+    // const loadTextFromFile = (ev: any) => {
+    //   const file = ev.target.files[0]
+    //   const reader = new FileReader()
+    //
+    //   reader.onload = (e: any) => {
+    //     if (e.target) {
+    //       lineTmp.value = JSON.parse(<string>e.target.result)
+    //       selected_beat.setTotalLine(lineTmp.value.length)
+    //       selected_beat.setPoint(0, 0)
+    //     }
+    //   }
+    //
+    //   reader.readAsText(file)
+    // }
+
     return {
       line,
       enableKeyEvent,
       splitTemple,
+      // loadTextFromFile,
       selectBeat,
       chkIsSelected,
       beatLayer1Img,

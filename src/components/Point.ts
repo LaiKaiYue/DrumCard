@@ -1,46 +1,47 @@
+import { ref, Ref, UnwrapRef } from 'vue'
 export default class Point {
-  row: number
-  col: number
-  totalLine: number
+  row: Ref<UnwrapRef<number>>
+  col: Ref<UnwrapRef<number>>
+  totalLine: Ref<UnwrapRef<number>>
 
   constructor () {
-    this.row = 0
-    this.col = 0
-    this.totalLine = 1
+    this.row = ref(0)
+    this.col = ref(0)
+    this.totalLine = ref(1)
   }
 
   setPoint (row: number, col: number): void {
-    this.row = row
-    this.col = col
-  }
-
-  setTotalLine (total: number): void {
-    this.totalLine = total
+    this.row.value = row
+    this.col.value = col
   }
 
   getPoint (): { row: number; col: number } {
-    return { row: this.row, col: this.col }
+    return { row: this.row.value, col: this.col.value }
+  }
+
+  setTotalLine (total: number): void {
+    this.totalLine.value = total
   }
 
   moveRight (isAutoNextLine = true): boolean {
-    let tmpRow = this.row
-    let tmpCol = this.col
+    let tmpRow = this.row.value
+    let tmpCol = this.col.value
     let isAddNewLine = false
-    if (this.col + 1 > 15) {
-      if (isAutoNextLine && this.totalLine - 1 === this.row) {
-        this.totalLine += 1
+    if (this.col.value + 1 > 15) {
+      if (isAutoNextLine && this.totalLine.value - 1 === this.row.value) {
+        this.totalLine.value += 1
         isAddNewLine = true
       }
 
-      if (this.totalLine - 1 === this.row && this.row + 1 >= this.totalLine) {
-        tmpCol = this.col
-        tmpRow = this.row
+      if (this.totalLine.value - 1 === this.row.value && this.row.value + 1 >= this.totalLine.value) {
+        tmpCol = this.col.value
+        tmpRow = this.row.value
       } else {
         tmpCol = 0
-        tmpRow = this.row + 1
+        tmpRow = this.row.value + 1
       }
     } else {
-      tmpCol = this.col + 1
+      tmpCol = this.col.value + 1
     }
 
     this.setPoint(tmpRow, tmpCol)
@@ -48,21 +49,21 @@ export default class Point {
   }
 
   moveLeft (isAutoDelLine = true): boolean {
-    let tmpRow = this.row
-    let tmpCol = this.col
+    let tmpRow = this.row.value
+    let tmpCol = this.col.value
     let isDelLine = false
-    if (this.col - 1 < 0) {
-      if (this.row - 1 < 0) {
+    if (this.col.value - 1 < 0) {
+      if (this.row.value - 1 < 0) {
         tmpRow = 0
         tmpCol = 0
       } else {
         tmpCol = 15
-        tmpRow = this.row - 1
-        if (isAutoDelLine) this.totalLine -= 1
+        tmpRow = this.row.value - 1
+        if (isAutoDelLine) this.totalLine.value -= 1
         isDelLine = isAutoDelLine
       }
     } else {
-      tmpCol = this.col - 1
+      tmpCol = this.col.value - 1
     }
 
     this.setPoint(tmpRow, tmpCol)
@@ -70,12 +71,12 @@ export default class Point {
   }
 
   moveUp (): void {
-    const tmpRow = this.row - 1 < 0 ? 0 : this.row - 1
-    this.setPoint(tmpRow, this.col)
+    const tmpRow = this.row.value - 1 < 0 ? 0 : this.row.value - 1
+    this.setPoint(tmpRow, this.col.value)
   }
 
   moveDown (): void {
-    const tmpRow = this.row + 1 >= this.totalLine ? this.row : this.row + 1
-    this.setPoint(tmpRow, this.col)
+    const tmpRow = this.row.value + 1 >= this.totalLine.value ? this.row.value : this.row.value + 1
+    this.setPoint(tmpRow, this.col.value)
   }
 }
