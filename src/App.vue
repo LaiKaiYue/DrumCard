@@ -97,6 +97,7 @@ export default defineComponent({
     // }
 
     return {
+      layerType,
       barArea,
       showLib,
       setLayerType
