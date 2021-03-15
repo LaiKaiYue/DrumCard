@@ -20,7 +20,7 @@ export default defineComponent({
   props: {
     msg: String
   },
-  setup (props) {
+  setup () {
     const store = inject<IStore>('store')
 
     const setBeatType = (_beatType) => {

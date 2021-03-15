@@ -13,7 +13,7 @@
       </div>
       <div>
         <sheetMusic :editState="showLib" :layer-type="layerType"
-                     @update="setLayerType"></sheetMusic>
+                    v-model:layerType="layerType"></sheetMusic>
       </div>
     </div>
 
@@ -88,19 +88,10 @@ export default defineComponent({
     const showLib = ref<boolean>(true)
     const barArea = ref<boolean>(true)
 
-    const setLayerType = (_layerType: string): void => {
-      layerType.value = _layerType
-    }
-
-    // const openTempoBar = (_barArea: boolean) => {
-    //   barArea.value = !_barArea
-    // }
-
     return {
       layerType,
       barArea,
-      showLib,
-      setLayerType
+      showLib
     }
   }
 })

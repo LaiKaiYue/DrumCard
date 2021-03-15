@@ -59,9 +59,6 @@ import { ItxtLayer, Ibeat } from '@/interface/Itempo'
 import tempoLib from './tempoLib'
 import Point from './Point'
 
-// import { Inject } from 'vue-property-decorator'
-// import { Vue, Options } from 'vue-class-component'
-
 export default defineComponent({
   props: {
     editState: {
@@ -73,15 +70,14 @@ export default defineComponent({
       required: true
     }
   },
-  setup (props) {
+  setup (props, context) {
     const lineTmp = ref<Array<ItxtLayer>>([
       { layer1: '1234567890-=0000', layer2: 'qwertyuiqwertyui', main: 'A1', repeat: '*3' }
     ])
     const filename = ref<string>('')
     const selected_beat = new Point()
-    // const altKey = ref<boolean>(false)
+    const altKey = ref<boolean>(false)
     const enableKeyEvent = ref<boolean>(true)
-
     const store = inject<IStore>('store')
 
     /**
@@ -110,7 +106,7 @@ export default defineComponent({
         return
       }
 
-      const isLayerBeatExist = tempoLib[props.layerType].some((layer: Ibeat) => layer.value === beatType.toString())
+      const isLayerBeatExist = tempoLib[props.layerType].some((layer: Ibeat) => layer.value === beatType)
       if (!isLayerBeatExist) return
 
       replaceAt(beatType)
@@ -132,6 +128,51 @@ export default defineComponent({
         }
       }
     }
+
+    window.addEventListener('keypress', (e) => {
+      if (!enableKeyEvent.value) return
+      const key = e.key
+      const keyCharCode = key.charCodeAt(0)
+
+      // 0-9
+      if (keyCharCode >= 48 && keyCharCode <= 57) {
+        setBeatType((keyCharCode % 48).toString(), 'next')
+      } else {
+        setBeatType(key, 'next')
+      }
+    })
+
+    window.addEventListener('keydown', (e) => {
+      if (!enableKeyEvent.value) return
+      const key = e.key
+      const keyCharCode = key.charCodeAt(0)
+
+      // press alt
+      if (keyCharCode === 65) altKey.value = true
+
+      // alt + 1
+      if (altKey.value && (keyCharCode === 161)) context.emit('update:layerType', 'layer1')
+      // alt + 2
+      if (altKey.value && (keyCharCode === 8482)) context.emit('update:layerType', 'layer2')
+
+      if (key === 'Backspace') {
+        setBeatType('0', 'back')
+      } else if (key === 'ArrowRight') {
+        selected_beat.moveRight(false)
+      } else if (key === 'ArrowLeft') {
+        selected_beat.moveLeft(false)
+      } else if (key === 'ArrowUp') selected_beat.moveUp()
+      else if (key === 'ArrowDown') selected_beat.moveDown()
+    })
+
+    window.addEventListener('keyup', (e) => {
+      if (!enableKeyEvent.value) return
+      const key = e.key
+      const keyCharCode = key.charCodeAt(0)
+
+      // alt
+      if (keyCharCode === 65) altKey.value = false
+    })
 
     const line = computed(() => {
       let _beatType = '0'
