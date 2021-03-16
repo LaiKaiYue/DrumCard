@@ -1,4 +1,4 @@
-# drum-card
+# DrumCard 節奏戰鬥卡
 
 ## Project setup
 ```
