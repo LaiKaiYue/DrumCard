@@ -13,7 +13,7 @@
 
 <script lang="ts">
 import { defineComponent, inject } from 'vue'
-import beatTypeList from './tempoLib.ts'
+import beatTypeList from './tempoLib'
 import { IStore } from '@/store'
 
 export default defineComponent({
@@ -23,7 +23,7 @@ export default defineComponent({
   setup () {
     const store = inject<IStore>('store')
 
-    const setBeatType = (_beatType) => {
+    const setBeatType = (_beatType: string) => {
       if (store) {
         store.beatType.value = _beatType
       }
