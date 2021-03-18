@@ -39,16 +39,19 @@
     "vue-jest": "^5.0.0-0"
   },
   "eslintConfig": {
+    "parser": "vue-eslint-parser",
     "root": true,
     "env": {
       "node": true
     },
+    "plugins": ["@typescript-eslint"],
     "extends": [
       "plugin:vue/vue3-essential",
       "@vue/standard",
       "@vue/typescript/recommended"
     ],
     "parserOptions": {
+      "parser": "@typescript-eslint/parser",
       "ecmaVersion": 2020
     },
     "rules": {

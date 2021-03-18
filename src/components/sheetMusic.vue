@@ -184,11 +184,11 @@ export default defineComponent({
       return lineTmp.value
     })
 
-    // const url = computed(() => {
-    //   const _line = JSON.stringify(line)
-    //   const data = new Blob([_line], { type: 'text/plain' })
-    //   return window.URL.createObjectURL(data)
-    // })
+    const url = computed(() => {
+      const _line = JSON.stringify(lineTmp.value)
+      const data = new Blob([_line], { type: 'text/plain' })
+      return URL.createObjectURL(data)
+    })
     const downloadFilename = computed(() => `${filename.value}.txt`)
     const splitTemple = computed(() => {
       return (template = '') => {
@@ -231,26 +231,25 @@ export default defineComponent({
       selected_beat.setPoint(line, measure * 4 + beatIdx)
     }
 
-    // const loadTextFromFile = (ev: any) => {
-    //   const file = ev.target.files[0]
-    //   const reader = new FileReader()
-    //
-    //   reader.onload = (e: any) => {
-    //     if (e.target) {
-    //       lineTmp.value = JSON.parse(<string>e.target.result)
-    //       selected_beat.setTotalLine(lineTmp.value.length)
-    //       selected_beat.setPoint(0, 0)
-    //     }
-    //   }
-    //
-    //   reader.readAsText(file)
-    // }
+    const loadTextFromFile = (ev: any) => {
+      const file = ev.target.files[0]
+      const reader = new FileReader()
+
+      reader.onload = (e: any) => {
+        lineTmp.value = JSON.parse(e.target.result)
+        selected_beat.setTotalLine(lineTmp.value.length)
+        selected_beat.setPoint(0, 0)
+      }
+
+      reader.readAsText(file)
+    }
 
     return {
       line,
+      url,
       enableKeyEvent,
       splitTemple,
-      // loadTextFromFile,
+      loadTextFromFile,
       selectBeat,
       chkIsSelected,
       beatLayer1Img,
