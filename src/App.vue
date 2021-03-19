@@ -88,114 +88,19 @@ export default defineComponent({
     const showLib = ref<boolean>(true)
     const barArea = ref<boolean>(true)
 
+    const print = () => {
+      showLib.value = false
+      setTimeout(() => {
+        window.print()
+      }, 100)
+    }
+
     return {
       layerType,
       barArea,
-      showLib
+      showLib,
+      print
     }
   }
 })
-
-// export default {
-//   name: 'App',
-//   data: function () {
-//     return {
-//       what: '',
-//       currentMidi: null,
-//       midRowData: null,
-//       layerType: 'layer1',
-//       // sheet: '',
-//       // sheetName: '',
-//       // docId: '',
-//       showLib: true,
-//       barArea: true
-//       // orders: []
-//     }
-//   },
-//   // watch: {
-//   //     windowHeight(newHeight, oldHeight) {
-//   //         console.log(newHeight)
-//   //         console.log(oldHeight)
-//   //     }
-//   // },
-//   // firestore: {
-//   //     orders: fStore.collection('question'),
-//   // },
-//   components: {
-//     tempoSideBar,
-//     sheetMusic
-//   },
-//   methods: {
-//     setLayerType (layerType) {
-//       this.layerType = layerType
-//     },
-//     print () {
-//       this.showLib = false
-//       setTimeout(() => {
-//         window.print()
-//       }, 100)
-//     },
-//     getFile (e) {
-//       // get the files
-//       const files = e.target.files
-//       if (files.length > 0) {
-//         const file = files[0]
-//         this.parseFile(file)
-//       }
-//     },
-//     // parseFile (file) {
-//     //   // read the file
-//     //   const reader = new FileReader()
-//     //   reader.onload = (e) => {
-//     //     const midi = new Midi(e.target.result)
-//     //     this.midRowData = JSON.stringify(midi, undefined, 2)
-//     //     // document.querySelector("#ResultsText").value = JSON.stringify(midi, undefined, 2)
-//     //     // document.querySelector('tone-play-toggle').removeAttribute('disabled')
-//     //     this.currentMidi = midi
-//     //   }
-//     //   reader.readAsArrayBuffer(file)
-//     // },
-//     openTempoBar () {
-//       // let state = ;
-//       document.getElementById('barArea').style.display = this.barArea ? 'none' : 'block'
-//       this.barArea = !this.barArea
-//     }
-//     // showMessage(msg) {
-//     //     alert(msg);
-//     // },
-//     // setEdit(doc) {
-//     //     this.sheetName = doc.sheetName;
-//     //     this.sheet = doc.content;
-//     //     this.docId = doc.id;
-//     // },
-//     // saveData() {
-//     //     fStore.collection('question').add({
-//     //         'content': this.sheet,
-//     //         'sheetName': this.sheetName,
-//     //         'createTime': new Date()
-//     //         // 'createTime': firebase.firestore.Timestamp.fromDate(new Date())
-//     //     })
-//     //         .then(() => {
-//     //             // this.showMessage("Success");
-//     //         })
-//     // },
-//     // deleteData(id) {
-//     //     fStore.collection('question').doc(id).delete()
-//     //         .then(() => {
-//     //             // this.showMessage("Success");
-//     //         })
-//     // },
-//     // updateData() {
-//     //     fStore.collection('question').doc(this.docId).set({
-//     //         'content': this.sheet,
-//     //         'sheetName': this.sheetName,
-//     //         'updateTime': new Date()
-//     //         // 'createTime': firebase.firestore.Timestamp.fromDate(new Date())
-//     //     })
-//     //         .then(() => {
-//     //             // this.showMessage("Success");
-//     //         })
-//     // }
-//   }
-// }
 </script>

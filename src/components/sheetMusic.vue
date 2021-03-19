@@ -244,6 +244,38 @@ export default defineComponent({
       reader.readAsText(file)
     }
 
+    /**
+    * 新增、複製Line
+    * @param lineIdx {number} - 哪一列
+    * @param type {string} - 新增或複製
+    */
+    const insertAt = (lineIdx: number, type: string) => {
+      if (type === 'add') {
+        lineTmp.value.splice(lineIdx + 1, 0, {
+          layer1: '0000000000000000',
+          layer2: ']]]]]]]]]]]]]]]]',
+          main: '',
+          repeat: ''
+        })
+      } else {
+        const newLine = lineTmp.value[lineIdx]
+        lineTmp.value.splice(lineIdx + 1, 0, JSON.parse(JSON.stringify(newLine)))
+      }
+      selected_beat.setTotalLine(lineTmp.value.length)
+    }
+
+    /**
+    * 刪除Line
+    * @param lineIdx {number} - 要刪除的列
+    */
+    const delLine = (lineIdx: number) => {
+      if (lineTmp.value.length === 1) return
+      lineTmp.value.splice(lineIdx, 1)
+      const col = selected_beat.getPoint().col
+      selected_beat.setPoint(lineTmp.value.length - 1, col)
+      selected_beat.setTotalLine(lineTmp.value.length)
+    }
+
     return {
       line,
       url,
@@ -255,7 +287,9 @@ export default defineComponent({
       beatLayer1Img,
       beatLayer2Img,
       filename,
-      downloadFilename
+      downloadFilename,
+      insertAt,
+      delLine
     }
   }
 
@@ -331,37 +365,7 @@ export default defineComponent({
   //     this.selected_beat.setPoint(line, measure * 4 + beatIdx)
   //   },
   //
-  //   /**
-  //            * 新增、複製Line
-  //            * @param lineIdx {number} - 哪一列
-  //            * @param type {string} - 新增或複製
-  //            */
-  //   insertAt (lineIdx, type) {
-  //     if (type === 'add') {
-  //       this.line.splice(lineIdx + 1, 0, {
-  //         layer1: '0000000000000000',
-  //         layer2: ']]]]]]]]]]]]]]]]',
-  //         main: '',
-  //         repeat: ''
-  //       })
-  //     } else {
-  //       const newLine = this.line[lineIdx]
-  //       this.line.splice(lineIdx + 1, 0, JSON.parse(JSON.stringify(newLine)))
-  //     }
-  //     this.selected_beat.setTotalLine(this.line.length)
-  //   },
-  //
-  //   /**
-  //            * 刪除Line
-  //            * @param lineIdx {number} - 要刪除的列
-  //            */
-  //   delLine (lineIdx) {
-  //     if (this.line.length === 1) return
-  //     this.line.splice(lineIdx, 1)
-  //     const col = this.selected_beat.getPoint()[1]
-  //     this.selected_beat.setPoint(this.line.length - 1, col)
-  //     this.selected_beat.setTotalLine(this.line.length)
-  //   }
+
   // }
 })
 </script>
