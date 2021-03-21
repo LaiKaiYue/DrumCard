@@ -1,9 +1,15 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
 import Home from '../views/Home.vue'
+import SheetMusic from '@/views/DrumCard.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
+    name: 'SheetMusic',
+    component: SheetMusic
+  },
+  {
+    path: '/home',
     name: 'Home',
     component: Home
   },

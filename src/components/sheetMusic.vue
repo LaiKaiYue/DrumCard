@@ -9,18 +9,18 @@
             </a>
             <input type="file" name="file" id="file" @change="loadTextFromFile">
         </div>
-        <div v-for="(line, lineIdx) in line" :key="lineIdx">
+        <div v-for="(sheetMusic, lineIdx) in sheetMusic" :key="lineIdx">
             <div v-if="editState" class="textCol">
-                <input class="textSize" v-model="line.main" @focus="enableKeyEvent = false" @blur="enableKeyEvent = true">
-                <input class="textSize" v-model="line.repeat" @focus="enableKeyEvent = false" @blur="enableKeyEvent = true">
+                <input class="textSize" v-model="sheetMusic.main" @focus="enableKeyEvent = false" @blur="enableKeyEvent = true">
+                <input class="textSize" v-model="sheetMusic.repeat" @focus="enableKeyEvent = false" @blur="enableKeyEvent = true">
             </div>
             <div v-else class="textCol">
-                <span class="textSize">{{line.main}}</span>
-                <span class="textSize">{{line.repeat}}</span>
+                <span class="textSize">{{sheetMusic.main}}</span>
+                <span class="textSize">{{sheetMusic.repeat}}</span>
             </div>
             <div style="display: flex;margin: 20px 0px;">
                 <!-- 一小節 -->
-                <div class="backImage" v-for="(bar, barIdx) in splitTemple(line.layer1)" :key="barIdx">
+                <div class="backImage" v-for="(bar, barIdx) in splitTemple(sheetMusic.layer1)" :key="barIdx">
                     <!-- 每一拍 -->
                     <div class="imageContent" v-for="(beat, beatIdx) in bar"
                          :key="beatIdx"
@@ -28,7 +28,7 @@
                          @click="selectBeat(lineIdx, barIdx, beatIdx)"
                     >
                         <img :src="beatLayer1Img(beat)" class="imageLayerMain">
-                        <img :src="beatLayer2Img(line.layer2, barIdx, beatIdx).src" :class="beatLayer2Img(line.layer2, barIdx, beatIdx).class">
+                        <img :src="beatLayer2Img(sheetMusic.layer2, barIdx, beatIdx).src" :class="beatLayer2Img(sheetMusic.layer2, barIdx, beatIdx).class">
                     </div>
                 </div>
                 <div v-show="editState" style="display:flex;align-items: center;">
@@ -53,11 +53,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, inject, computed, ref } from 'vue'
+import { defineComponent, inject, computed, watch, ref } from 'vue'
 import { IStore } from '@/store'
-import { ItxtLayer, Ibeat } from '@/interface/Itempo'
+import { ILine } from '@/interface/IBeatLib'
+import BeatUtils from '@/components/common/BeatUtils'
+import GlobalListener from '@/components/common/GlobalListener'
 import tempoLib from './tempoLib'
-import Point from './Point'
 
 export default defineComponent({
   props: {
@@ -66,135 +67,80 @@ export default defineComponent({
     },
     layerType: {
       type: String,
-      // default: 'layer1'
       required: true
     }
   },
   setup (props, context) {
-    const lineTmp = ref<Array<ItxtLayer>>([
+    const _sheetMusic = ref<Array<ILine>>([
       { layer1: '1234567890-=0000', layer2: 'qwertyuiqwertyui', main: 'A1', repeat: '*3' }
     ])
+    const _BeatUtils = new BeatUtils()
+    const _GlobalListenser = new GlobalListener(_BeatUtils, context)
     const filename = ref<string>('')
-    const selected_beat = new Point()
-    const altKey = ref<boolean>(false)
     const enableKeyEvent = ref<boolean>(true)
     const store = inject<IStore>('store')
 
-    /**
-    * 點擊換拍子, 取代字串
-    * @param replace {string} - 要取代的數字
-    */
-    const replaceAt = (replace: string) => {
-      if (!replace) replace = '0'
+    // 監聽 layerType 上下層事件
+    watch(() => props.layerType, (layerType: string) => {
+      _BeatUtils.setLayer(layerType)
+    })
+    // 監聽是否在編輯中
+    watch(() => enableKeyEvent.value, (value) => {
+      _GlobalListenser.setDisabled(value)
+    })
 
-      const { row, col } = selected_beat.getPoint()
-      const _line: string = lineTmp.value[row][props.layerType]
-      lineTmp.value[row][props.layerType] = `${_line.substring(0, col)}${replace}${_line.substring(col + 1)}`
+    /**
+     * 設定拍子
+     * @param beatType {string} - 節拍屬性
+     * @param [moveAction="next"] {string} - 選前一格或後一格
+     */
+    const setBeatType = (beatType: string, moveAction = 'next'): void => {
+      const { row } = _BeatUtils.getPoint()
+      const _line = _sheetMusic.value[row][props.layerType]
+      _sheetMusic.value[row][props.layerType] = _BeatUtils.setBeatType(_line, beatType, moveAction)
+      const isAddNewLine = _BeatUtils.getIsAddNewLine()
+      if (isAddNewLine) {
+        _sheetMusic.value.push({
+          layer1: '0000000000000000',
+          layer2: ']]]]]]]]]]]]]]]]',
+          main: '',
+          repeat: ''
+        })
+      }
 
       if (store) {
         store.beatType.value = ''
       }
     }
 
-    /**
-     * 設定拍子
-     * @param beatType {string} - 節拍屬性
-     * @param [keyType="next"] {string} - 選前一格或後一格
-     */
-    const setBeatType = (beatType: string, keyType = 'next'): void => {
-      if (!beatType) {
-        return
-      }
+    // 設定key event
+    _GlobalListenser.setup(setBeatType)
 
-      const isLayerBeatExist = tempoLib[props.layerType].some((layer: Ibeat) => layer.value === beatType)
-      if (!isLayerBeatExist) return
-
-      replaceAt(beatType)
-
-      if (keyType === 'next') {
-        const isAddNewLine = selected_beat.moveRight()
-        if (isAddNewLine) {
-          lineTmp.value.push({
-            layer1: '0000000000000000',
-            layer2: ']]]]]]]]]]]]]]]]',
-            main: '',
-            repeat: ''
-          })
-        }
-      } else {
-        const isDelLine = selected_beat.moveLeft()
-        if (isDelLine) {
-          // lineTmp.value.splice(lineTmp.value.length - 1, 1)
-        }
-      }
-    }
-
-    window.addEventListener('keypress', (e) => {
-      if (!enableKeyEvent.value) return
-      const key = e.key
-      const keyCharCode = key.charCodeAt(0)
-
-      // 0-9
-      if (keyCharCode >= 48 && keyCharCode <= 57) {
-        setBeatType((keyCharCode % 48).toString(), 'next')
-      } else {
-        setBeatType(key, 'next')
-      }
-    })
-
-    window.addEventListener('keydown', (e) => {
-      if (!enableKeyEvent.value) return
-      const key = e.key
-      const keyCharCode = key.charCodeAt(0)
-
-      // press alt
-      if (keyCharCode === 65) altKey.value = true
-
-      // alt + 1
-      if (altKey.value && (keyCharCode === 161)) context.emit('update:layerType', 'layer1')
-      // alt + 2
-      if (altKey.value && (keyCharCode === 8482)) context.emit('update:layerType', 'layer2')
-
-      if (key === 'Backspace') {
-        setBeatType('0', 'back')
-      } else if (key === 'ArrowRight') {
-        selected_beat.moveRight(false)
-      } else if (key === 'ArrowLeft') {
-        selected_beat.moveLeft(false)
-      } else if (key === 'ArrowUp') selected_beat.moveUp()
-      else if (key === 'ArrowDown') selected_beat.moveDown()
-    })
-
-    window.addEventListener('keyup', (e) => {
-      if (!enableKeyEvent.value) return
-      const key = e.key
-      const keyCharCode = key.charCodeAt(0)
-
-      // alt
-      if (keyCharCode === 65) altKey.value = false
-    })
-
-    const line = computed(() => {
+    // 樂譜顯示
+    const sheetMusic = computed(() => {
       let _beatType = '0'
       if (store) {
         _beatType = store.beatType.value
       }
       setBeatType(_beatType, 'next')
 
-      return lineTmp.value
+      return _sheetMusic.value
     })
 
+    // download 路徑
     const url = computed(() => {
-      const _line = JSON.stringify(lineTmp.value)
+      const _line = JSON.stringify(_sheetMusic.value)
       const data = new Blob([_line], { type: 'text/plain' })
       return URL.createObjectURL(data)
     })
+    // download檔名
     const downloadFilename = computed(() => `${filename.value}.txt`)
     const splitTemple = computed(() => {
       return (template = '') => {
         return template.match(/.{1,4}/g)
       }
     })
+    // 轉換上下層圖片
     const beatLayer1Img = computed(() => {
       return (beat: string) => {
         const _obj = tempoLib.layer1.find(temp => temp.value === beat)
@@ -211,11 +157,12 @@ export default defineComponent({
         return { src: img_src, class: img_class }
       }
     })
+    // 選中的位置
     const chkIsSelected = computed(() => {
       return (line: number, measure: number, beatIdx: number) => {
         const row: number = line
         const col = measure * 4 + beatIdx
-        const Point = selected_beat.getPoint()
+        const Point = _BeatUtils.getPoint()
         if (row === Point.row && col === Point.col) return 'chooseItem'
       }
     })
@@ -227,18 +174,18 @@ export default defineComponent({
      * @param beatIdx {number} - 節拍
      */
     const selectBeat = (line: number, measure: number, beatIdx: number): void => {
-      console.log(line, measure * 4 + beatIdx)
-      selected_beat.setPoint(line, measure * 4 + beatIdx)
+      _BeatUtils.setPoint(line, measure * 4 + beatIdx)
     }
 
+    // 讀入檔案
     const loadTextFromFile = (ev: any) => {
       const file = ev.target.files[0]
       const reader = new FileReader()
 
       reader.onload = (e: any) => {
-        lineTmp.value = JSON.parse(e.target.result)
-        selected_beat.setTotalLine(lineTmp.value.length)
-        selected_beat.setPoint(0, 0)
+        _sheetMusic.value = JSON.parse(e.target.result)
+        _BeatUtils.setTotalLine(_sheetMusic.value.length)
+        _BeatUtils.setPoint(0, 0)
       }
 
       reader.readAsText(file)
@@ -251,17 +198,17 @@ export default defineComponent({
     */
     const insertAt = (lineIdx: number, type: string) => {
       if (type === 'add') {
-        lineTmp.value.splice(lineIdx + 1, 0, {
+        _sheetMusic.value.splice(lineIdx + 1, 0, {
           layer1: '0000000000000000',
           layer2: ']]]]]]]]]]]]]]]]',
           main: '',
           repeat: ''
         })
       } else {
-        const newLine = lineTmp.value[lineIdx]
-        lineTmp.value.splice(lineIdx + 1, 0, JSON.parse(JSON.stringify(newLine)))
+        const newLine = _sheetMusic.value[lineIdx]
+        _sheetMusic.value.splice(lineIdx + 1, 0, JSON.parse(JSON.stringify(newLine)))
       }
-      selected_beat.setTotalLine(lineTmp.value.length)
+      _BeatUtils.setTotalLine(_sheetMusic.value.length)
     }
 
     /**
@@ -269,104 +216,29 @@ export default defineComponent({
     * @param lineIdx {number} - 要刪除的列
     */
     const delLine = (lineIdx: number) => {
-      if (lineTmp.value.length === 1) return
-      lineTmp.value.splice(lineIdx, 1)
-      const col = selected_beat.getPoint().col
-      selected_beat.setPoint(lineTmp.value.length - 1, col)
-      selected_beat.setTotalLine(lineTmp.value.length)
+      if (_sheetMusic.value.length === 1) return
+      _sheetMusic.value.splice(lineIdx, 1)
+      const col = _BeatUtils.getPoint().col
+      _BeatUtils.setPoint(_sheetMusic.value.length - 1, col)
+      _BeatUtils.setTotalLine(_sheetMusic.value.length)
     }
 
     return {
-      line,
+      sheetMusic,
       url,
       enableKeyEvent,
       splitTemple,
-      loadTextFromFile,
-      selectBeat,
       chkIsSelected,
       beatLayer1Img,
       beatLayer2Img,
       filename,
       downloadFilename,
+      loadTextFromFile,
+      selectBeat,
       insertAt,
       delLine
     }
   }
-
-  // created () {
-  //   window.addEventListener('keypress', (e) => {
-  //     if (!this.enableKeyEvent) return
-  //     const key = e.key
-  //     const keyCharCode = key.charCodeAt(0)
-  //
-  //     // 0-9
-  //     if (keyCharCode >= 48 && keyCharCode <= 57) {
-  //       this.setBeatType(keyCharCode % 48, 'next')
-  //     } else {
-  //       this.setBeatType(key, 'next')
-  //     }
-  //   })
-  //
-  //   window.addEventListener('keydown', (e) => {
-  //     if (!this.enableKeyEvent) return
-  //     const key = e.key
-  //     const keyCharCode = key.charCodeAt(0)
-  //
-  //     // press alt
-  //     if (keyCharCode === 65) this.altKey = true
-  //
-  //     // alt + 1
-  //     if (this.altKey && (keyCharCode === 161)) this.$emit('update', 'layer1')
-  //     // alt + 2
-  //     if (this.altKey && (keyCharCode === 8482)) this.$emit('update', 'layer2')
-  //
-  //     if (key === 'Backspace') {
-  //       this.setBeatType('0', 'back')
-  //     } else if (key === 'ArrowRight') {
-  //       this.selected_beat.moveRight(false)
-  //     } else if (key === 'ArrowLeft') {
-  //       this.selected_beat.moveLeft(false)
-  //     } else if (key === 'ArrowUp') this.selected_beat.moveUp()
-  //     else if (key === 'ArrowDown') this.selected_beat.moveDown()
-  //   })
-  //
-  //   window.addEventListener('keyup', (e) => {
-  //     if (!this.enableKeyEvent) return
-  //     const key = e.key
-  //     const keyCharCode = key.charCodeAt(0)
-  //
-  //     // alt
-  //     if (keyCharCode === 65) this.altKey = false
-  //   })
-  // },
-  //
-  // methods: {
-  //
-  //   loadTextFromFile (ev) {
-  //     const file = ev.target.files[0]
-  //     const reader = new FileReader()
-  //
-  //     reader.onload = e => {
-  //       this.line = JSON.parse(e.target.result)
-  //       this.selected_beat.setTotalLine(this.line.length)
-  //       this.selected_beat.setPoint(0, 0)
-  //     }
-  //
-  //     reader.readAsText(file)
-  //   },
-  //
-  //   /**
-  //        * click選位置
-  //        * @param line {array} - 行數
-  //        * @param measure {string} - 小節
-  //        * @param beatIdx {number} - 節拍
-  //        */
-  //   selectBeat (line, measure, beatIdx) {
-  //     this.selected_beat.setPoint(line, measure * 4 + beatIdx)
-  //   },
-  //
-
-  // }
 })
 </script>
 

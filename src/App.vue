@@ -1,45 +1,5 @@
 <template>
-  <div id="app" style="display: flex;">
-    <!--        <div>-->
-    <!--            <input type="file" accept="audio/midi" @change="getFile">-->
-    <!--            <textarea COLS="60" ROWS="35" v-model="midRowData" placeholder="json output..."></textarea>-->
-    <!--&lt;!&ndash;            <tone-play-toggle disabled></tone-play-toggle>&ndash;&gt;-->
-    <!--        </div>-->
-    <div  style="margin-right: 150px;">
-      <div style="padding: 10px;">
-        <button @click="print" style="margin-right: 10px;">Print</button>
-        <button v-if="showLib" @click="showLib = !showLib">Hide</button>
-        <button v-else @click="showLib = !showLib">Show</button>
-      </div>
-      <div>
-        <sheetMusic :editState="showLib" :layer-type="layerType"
-                    v-model:layerType="layerType"></sheetMusic>
-      </div>
-    </div>
-
-    <div v-if="showLib" class="tempoLib">
-      <div class="hamburger" @click="barArea = !barArea">☰</div>
-      <div id="barArea" :style="[ barArea ? { 'display': 'none' } : { 'display': 'block' } ]">
-        <div :editState="showLib">
-          <div @click="layerType='layer1'" class="changeBtn" :class="{'setChangeBtn':layerType==='layer1'}">下圖(alt+1)</div>
-          <div @click="layerType='layer2'" class="changeBtn" :class="{'setChangeBtn':layerType==='layer2'}">上圖(alt+2)</div>
-          <div style="clear:both;"></div>
-        </div>
-        <tempo-side-bar></tempo-side-bar>
-      </div>
-    </div>
-    <!--<div>-->
-    <!--<input v-model="sheetName">-->
-    <!--<input v-model="sheet">-->
-    <!--<button @click="saveData()">新增資料</button>-->
-    <!--<button @click="updateData()">儲存修改資料</button>-->
-    <!--</div>-->
-    <!--<div v-for="(d,idx) in orders" :key="idx">-->
-    <!--<div>-->
-    <!--{{d.sheetName}}-->
-    <!--<button @click="setEdit(d)">修改資料</button>-->
-    <!--<button @click="deleteData(d.id)">刪除資料</button>-->
-  </div>
+  <router-view />
 </template>
 
 <style>
@@ -71,36 +31,3 @@
   background-color: deepskyblue;
 }
 </style>
-
-<script lang="ts">
-import { defineComponent, ref } from 'vue'
-import tempoSideBar from './components/tempoSideBar.vue'
-import sheetMusic from './components/sheetMusic.vue'
-
-export default defineComponent({
-  name: 'App',
-  components: {
-    sheetMusic,
-    tempoSideBar
-  },
-  setup () {
-    const layerType = ref<string>('layer1')
-    const showLib = ref<boolean>(true)
-    const barArea = ref<boolean>(true)
-
-    const print = () => {
-      showLib.value = false
-      setTimeout(() => {
-        window.print()
-      }, 100)
-    }
-
-    return {
-      layerType,
-      barArea,
-      showLib,
-      print
-    }
-  }
-})
-</script>

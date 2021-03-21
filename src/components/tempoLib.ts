@@ -1,6 +1,6 @@
-import Ilayer from '../interface/Itempo'
+import IBeatTypeList from '../interface/IBeatLib'
 
-const tempo: Ilayer = {
+const tempo: IBeatTypeList = {
   layer1: [
     {
       display: '大鼓',
