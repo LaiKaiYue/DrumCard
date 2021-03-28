@@ -17,4 +17,5 @@ export interface ILine {
   layer2: string;
   main: string;
   repeat: string;
+  tempo: string;
 }

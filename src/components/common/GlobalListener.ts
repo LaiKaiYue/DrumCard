@@ -42,7 +42,7 @@ export default class GlobalListener {
       if (key === 'Backspace') {
         setBeatType('0', 'back')
       } else if (key === 'ArrowRight') {
-        this._BeatUtils.moveRight()
+        this._BeatUtils.moveRight(false)
       } else if (key === 'ArrowLeft') {
         this._BeatUtils.moveLeft()
       } else if (key === 'ArrowUp') this._BeatUtils.moveUp()

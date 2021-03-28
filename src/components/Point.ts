@@ -1,13 +1,15 @@
 import { ref, Ref, UnwrapRef } from 'vue'
 export default class Point {
-  row: Ref<UnwrapRef<number>>
-  col: Ref<UnwrapRef<number>>
-  totalLine: Ref<UnwrapRef<number>>
+  private row: Ref<UnwrapRef<number>>
+  private col: Ref<UnwrapRef<number>>
+  private totalLine: Ref<UnwrapRef<number>>
+  private totalBeat: number
 
   constructor () {
     this.row = ref(0)
     this.col = ref(0)
     this.totalLine = ref(1)
+    this.totalBeat = 0
   }
 
   setPoint (row: number, col: number): void {
@@ -27,7 +29,7 @@ export default class Point {
     let tmpRow = this.row.value
     let tmpCol = this.col.value
     let isAddNewLine = false
-    if (this.col.value + 1 > 15) {
+    if (this.col.value + 1 >= this.totalBeat) {
       if (isAutoNextLine && this.totalLine.value - 1 === this.row.value) {
         this.totalLine.value += 1
         isAddNewLine = true
@@ -78,5 +80,9 @@ export default class Point {
   moveDown (): void {
     const tmpRow = this.row.value + 1 >= this.totalLine.value ? this.row.value : this.row.value + 1
     this.setPoint(tmpRow, this.col.value)
+  }
+
+  setTotalBeat (totalBeat: number): void {
+    this.totalBeat = totalBeat
   }
 }
