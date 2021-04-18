@@ -2,46 +2,98 @@
   <div>
     <!--        <button @click="createFile">Create file</button>-->
     <!--        <a v-show="downloadState" download="info.txt" :href="url">Download</a>-->
-    <div v-if="editState" style="padding: 10px;">
-      檔案名稱: <input type="text" v-model="filename" required>
-      <a :download="downloadFilename" :href="url">
-        <button type="button">Download</button>
-      </a>
-      <input type="file" name="file" id="file" @change="loadTextFromFile">
+    <div class="flex justify-between pt-3 pl-1 pr-1">
+      <div class="mb-5">
+          檔案名稱: <input type="text" class="mr-2" v-model="filename" required
+            @focus="enableKeyEvent = false" @blue="enableKeyEvent = true">
+          <button type="button" class="btn btn-green mr-3" @click="download">Download</button>
+
+          <button class="btn btn-green" @click="$refs.fileRef.click()">
+            <input type="file" ref="fileRef" name="file" class="hidden" @change="loadTextFromFile" />
+            <i class="fa fa-cloud-upload"></i> 上傳樂譜
+          </button>
+      </div>
+
+      <div>
+          <button
+            class="btn btn-green mb-1 mr-3 md:mb-0"
+            @click="print"
+          >Print</button>
+          <button v-if="showLib"
+            class="btn btn-green"
+            @click="showLib = !showLib"
+          >Hide</button>
+          <button v-else
+            class="btn btn-green"
+            @click="showLib = !showLib"
+          >Show</button>
+      </div>
     </div>
+
     <div v-for="(line, lineIdx) in sheetMusic" :key="lineIdx">
-      <div v-if="editState" class="textCol">
-        <input class="textSize" v-model="line.main" @focus="enableKeyEvent = false" @blur="enableKeyEvent = true">
-        節奏：<input class="textSize" v-model="line.tempo" @change="changeTempo(lineIdx)" @focus="enableKeyEvent = false" @blur="enableKeyEvent = true">
-        <input class="textSize" v-model="line.repeat" @focus="enableKeyEvent = false" @blur="enableKeyEvent = true">
+      <div class="ml-1 mb-3">
+        <div v-if="showLib" class="flex justify-between">
+          <input class="text-xl font-bold w-auto" v-model="line.main" @focus="enableKeyEvent = false" @blur="enableKeyEvent = true">
+          <div class="w-auto">
+            節奏：<input class="text-xl font-bold" v-model="line.tempo" @change="changeTempo(lineIdx)" @focus="enableKeyEvent = false" @blur="enableKeyEvent = true">
+          </div>
+          <input class="text-xl font-bold w-auto" v-model="line.repeat" @focus="enableKeyEvent = false" @blur="enableKeyEvent = true">
+        </div>
+        <div v-else class="flex justify-between">
+            <span class="text-xl font-bold w-auto">{{ line.main }}</span>
+            <span class="text-xl font-bold w-auto">{{ line.repeat }}</span>
+        </div>
       </div>
-      <div v-else class="textCol">
-        <span class="textSize">{{ line.main }}</span>
-        <span class="textSize">{{ line.repeat }}</span>
-      </div>
-      <div style="display: flex;margin: 20px 0px;">
+
+      <div class="flex flex-wrap">
         <!-- 一小節 -->
         <template v-for="(subsection, subsectionIdx) in splitTemple(line)" :key="subsectionIdx">
-          <div style="display: flex; flex-direction: column;">
-<!--            <div>-->
-<!--              <input type="radio" name="tempo" value="4"> 4拍-->
-<!--              <input type="radio" name="tempo" value="6"> 6拍-->
-<!--            </div>-->
-            <div class="backImage">
-              <!-- 每一拍 -->
-              <div class="imageContent" v-for="(beat, beatIdx) in subsection"
-                   :key="beatIdx"
-                   :class="chkIsSelected(lineIdx, subsectionIdx, beatIdx)"
-                   @click="selectBeat(lineIdx, subsectionIdx, beatIdx)"
+          <div class="backImage mb-3">
+            <!-- 每一拍 -->
+            <!-- <div class="imageContent" v-for="(beat, beatIdx) in subsection"
+              :key="beatIdx"
+              :class="chkIsSelected(lineIdx, subsectionIdx, beatIdx)"
+              @click="selectBeat(lineIdx, subsectionIdx, beatIdx)"
+            >
+              <img :src="beatLayer1Img(beat)" class="imageLayerMain">
+              <img :src="beatLayer2Img(lineIdx, subsectionIdx, beatIdx).src"
+                :class="beatLayer2Img(lineIdx, subsectionIdx, beatIdx).class"
               >
-                <img :src="beatLayer1Img(beat)" class="imageLayerMain">
-                <img :src="beatLayer2Img(lineIdx, subsectionIdx, beatIdx).src"
-                     :class="beatLayer2Img(lineIdx, subsectionIdx, beatIdx).class">
-              </div>
-            </div>
+            </div> -->
+            <el-popover
+              placement="bottom"
+              :width="120"
+              :close-delay="10"
+              :key="beatIdx"
+              v-for="(beat, beatIdx) in subsection"
+              trigger="click"
+            >
+              <template #reference>
+                <div class="imageContent"
+                  :class="chkIsSelected(lineIdx, subsectionIdx, beatIdx)"
+                  @click="selectBeat(lineIdx, subsectionIdx, beatIdx)"
+                >
+                  <img :src="beatLayer1Img(beat)" class="imageLayerMain">
+                </div>
+              </template>
+              <el-table
+                :data="tempoLibLayer1"
+                @row-click="handleSelect"
+                stripe
+                height="300px"
+              >
+                <el-table-column width="50" property="value" label="按鍵"></el-table-column>
+                <!-- <el-table-column width="100" property="display" label="節奏"></el-table-column> -->
+                <el-table-column width="50" property="image" label="圖片">
+                  <template #default="scope">
+                    <img width='30' :src="scope.row.image">
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-popover>
           </div>
         </template>
-        <div v-show="editState" style="display:flex;align-items: center;">
+        <div v-show="showLib" style="display:flex;align-items: center;">
           <div style="padding: 10px;">
             <div @click="insertAt(lineIdx, 'add')"><i class="fas fa-plus fa-1x"></i></div>
             <div @click="delLine(lineIdx)"><i class="fas fa-minus fa-1x"></i></div>
@@ -63,17 +115,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, watch, ref } from 'vue'
+import { defineComponent, computed, watch, ref, nextTick } from 'vue'
 import BeatUtils from '@/components/common/BeatUtils'
 import GlobalListener from '@/components/common/GlobalListener'
 import tempoLib from './tempoLib'
-import { ILine } from '@/interface/IBeatLib'
+import { IBeatType, ILine } from '@/interface/IBeatLib'
 
 export default defineComponent({
   props: {
-    editState: {
-      type: Boolean
-    },
     layerType: {
       type: String,
       required: true
@@ -85,6 +134,14 @@ export default defineComponent({
     const _GlobalListenser = new GlobalListener(beatUtils, context)
     const filename = ref<string>('')
     const enableKeyEvent = ref<boolean>(true)
+    const showLib = ref<boolean>(true)
+
+    const print = () => {
+      showLib.value = false
+      nextTick(() => {
+        window.print()
+      })
+    }
 
     // 監聽 layerType 上下層事件
     watch(() => props.layerType, (layerType: string) => {
@@ -107,14 +164,6 @@ export default defineComponent({
     // 設定key event
     _GlobalListenser.setup(setBeatType)
 
-    // download 路徑
-    const url = computed(() => {
-      const _line = JSON.stringify(sheetMusic.value)
-      const data = new Blob([_line], { type: 'text/plain' })
-      return URL.createObjectURL(data)
-    })
-    // download檔名
-    const downloadFilename = computed(() => `${filename.value}.txt`)
     // 切換節奏
     const splitTemple = computed(() => {
       return (line: ILine) => {
@@ -146,11 +195,27 @@ export default defineComponent({
         return { src: img_src, class: img_class }
       }
     })
+
+    // const tempoLibLayer1 = tempoLib.layer1
+    const tempoLibLayer1 = computed(() => {
+      return tempoLib.layer1.map((_layer1) => {
+        return {
+          display: _layer1.display,
+          value: _layer1.value,
+          image: `/images/${_layer1.image}`
+        }
+      })
+    })
+
     // 選中的位置
     const chkIsSelected = beatUtils.chkIsSelected
 
     const changeTempo = (row: number) => {
       beatUtils.changeTempo(row)
+    }
+
+    const handleSelect = (row: IBeatType, column: object, event: object) => {
+      setBeatType(row.value, 'next')
     }
 
     /**
@@ -173,8 +238,8 @@ export default defineComponent({
         beatUtils.setTotalLine(sheetMusic.value.length)
         beatUtils.setPoint(0, 0)
       }
-
       reader.readAsText(file)
+      ev.target.value = null
     }
 
     /**
@@ -210,37 +275,47 @@ export default defineComponent({
       beatUtils.setTotalLine(sheetMusic.value.length)
     }
 
+    const download = () => {
+      const _line = JSON.stringify(sheetMusic.value)
+      const data = new Blob([_line], { type: 'text/plain' })
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(data)
+      a.download = filename.value
+      a.click()
+    }
+
     return {
       sheetMusic,
-      url,
       enableKeyEvent,
       splitTemple,
+      tempoLibLayer1,
       chkIsSelected,
       beatLayer1Img,
       beatLayer2Img,
       filename,
-      downloadFilename,
+      download,
       changeTempo,
       loadTextFromFile,
       selectBeat,
       insertAt,
-      delLine
+      delLine,
+      print,
+      showLib,
+      handleSelect
     }
   }
 })
 </script>
 
 <style>
-
-.textSize {
-  font-size: 20px;
-  font-weight: bold;
+.btn {
+  @apply px-4 font-semibold rounded-lg shadow-md;
 }
-
-.textCol {
-  display: flex;
-  justify-content: space-between;
-  margin: 10px 45px 5px 10px;
+.btn-green {
+  @apply text-white bg-green-500 hover:bg-green-700;
+}
+.textSize {
+  @apply text-xl font-bold;
 }
 
 .imageContent {
@@ -281,14 +356,8 @@ export default defineComponent({
 
 .backImage {
   background-image: url('/images/background.jpg');
-  background-size: 256px 70px;
-  width: 256px;
-  height: 70px;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  margin: 4px;
-  border: 1px black solid;
+  @apply flex m-1 bg-contain;
+  @apply border border-solid border-black;
 }
 
 </style>

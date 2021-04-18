@@ -1,5 +1,5 @@
 <template>
-  <div id="app" style="display: flex;">
+  <div class="flex flex-wrap">
     <!-- midi檔 轉換功能   -->
     <!--        <div>-->
     <!--            <input type="file" accept="audio/midi" @change="getFile">-->
@@ -8,22 +8,14 @@
     <!--        </div>-->
 
     <!-- sheetMusic樂譜   -->
-    <div  style="margin-right: 150px;">
-      <div style="padding: 10px;">
-        <button @click="print" style="margin-right: 10px;">Print</button>
-        <button v-if="showLib" @click="showLib = !showLib">Hide</button>
-        <button v-else @click="showLib = !showLib">Show</button>
-      </div>
-      <div>
-        <sheetMusic
-            v-model:layerType="layerType"
-            :editState="showLib"
-            :layer-type="layerType" />
-      </div>
+    <div class="w-full">
+      <sheetMusic
+        v-model:layerType="layerType"
+        :layer-type="layerType" />
     </div>
 
     <!--  tempoSideBar  -->
-    <div v-if="showLib" class="tempoLib">
+    <div v-if="false" class="">
       <div class="hamburger" @click="barArea = !barArea">☰</div>
       <div id="barArea" :style="[ barArea ? { 'display': 'none' } : { 'display': 'block' } ]">
         <div :editState="showLib">
@@ -50,7 +42,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, nextTick } from 'vue'
+import { defineComponent, ref } from 'vue'
 import sheetMusic from '@/components/sheetMusic.vue'
 import tempoSideBar from '@/components/tempoSideBar.vue'
 
@@ -62,21 +54,11 @@ export default defineComponent({
   },
   setup () {
     const layerType = ref<string>('layer1')
-    const showLib = ref<boolean>(true)
     const barArea = ref<boolean>(true)
-
-    const print = () => {
-      showLib.value = false
-      nextTick(() => {
-        window.print()
-      })
-    }
 
     return {
       layerType,
-      barArea,
-      showLib,
-      print
+      barArea
     }
   }
 })
@@ -84,4 +66,24 @@ export default defineComponent({
 
 <style scoped>
 
+.hamburger{
+  margin: 10px;
+  position: fixed;
+  top: 0px;
+  right: 0;
+}
+
+.changeBtn {
+  float:left;
+  width: 100px;
+  border: 1px black solid;
+  border-radius: 20px;
+  text-align: center;
+  padding: 5px;
+  margin: 5px;
+}
+
+.setChangeBtn {
+  background-color: deepskyblue;
+}
 </style>
