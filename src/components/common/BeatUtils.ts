@@ -17,17 +17,15 @@ export default class BeatUtils implements IBeatUtils {
   private point: Point
   private layer: string
   private isAddNewLine: boolean
-  private sheetMusic: Ref<UnwrapRef<Array<ILine>>>;
+  private notation: Ref<UnwrapRef<Array<ILine>>>;
   private store: IStore | undefined;
 
-  constructor () {
-    this.point = new Point()
+  constructor (_point: Point, _notation: Ref<UnwrapRef<Array<ILine>>>) {
+    this.point = _point
     this.isAddNewLine = false
     this.layer = 'layer1'
     this.store = inject<IStore>('store')
-    this.sheetMusic = ref<Array<ILine>>([
-      { layer1: '1234567890-=0000', layer2: 'qwertyuiqwertyui', main: 'A1', repeat: '*3', tempo: '4444' }
-    ])
+    this.notation = _notation
 
     watch(() => this.store?.beatType.value, (beatType = '0') => {
       this.setBeatType(beatType, 'next')
@@ -35,18 +33,18 @@ export default class BeatUtils implements IBeatUtils {
   }
 
   getSheetMusic (): Ref<UnwrapRef<Array<ILine>>> {
-    return this.sheetMusic
+    return this.notation
   }
 
   changeTempo (row: number): void {
-    const line = this.sheetMusic.value[row]
+    const line = this.notation.value[row]
     const tempo = line.tempo
     let totalBeat = 0
     tempo.split('').forEach(eachTempo => {
       totalBeat += Number(eachTempo)
     })
-    this.sheetMusic.value[row].layer1.padEnd(totalBeat, '0')
-    this.sheetMusic.value[row].layer2.padEnd(totalBeat, ']')
+    this.notation.value[row].layer1.padEnd(totalBeat, '0')
+    this.notation.value[row].layer2.padEnd(totalBeat, ']')
   }
 
   replaceBeat = (line: string, beatType: string): string => {
@@ -68,13 +66,13 @@ export default class BeatUtils implements IBeatUtils {
     if (!isLayerBeatExist) return
 
     const row = this.getPoint().row
-    const line = this.sheetMusic.value[row][this.layer]
+    const line = this.notation.value[row][this.layer]
 
-    this.sheetMusic.value[row][this.layer] = this.replaceBeat(line, beatType)
+    this.notation.value[row][this.layer] = this.replaceBeat(line, beatType)
     if (moveAction === 'next') {
       const isAddNewLine = this.moveRight()
       if (isAddNewLine) {
-        this.sheetMusic.value.push({
+        this.notation.value.push({
           layer1: '0000000000000000',
           layer2: ']]]]]]]]]]]]]]]]',
           main: '',
@@ -103,7 +101,7 @@ export default class BeatUtils implements IBeatUtils {
   }
 
   getTempo (line: number, subsection: number): number {
-    return Number(this.sheetMusic.value[line].tempo.split('')[subsection])
+    return Number(this.notation.value[line].tempo.split('')[subsection])
   }
 
   selectBeat (line: number, subsection: number, beat: number): void {
@@ -119,7 +117,7 @@ export default class BeatUtils implements IBeatUtils {
 
   private setTotalBeat () {
     const line = this.point.getPoint().row
-    const tempoList = this.sheetMusic.value[line].tempo.split('')
+    const tempoList = this.notation.value[line].tempo.split('')
     let totalBeat = 0
     for (let list = 0; list < tempoList.length; list++) {
       totalBeat += Number(tempoList[list])

@@ -5,68 +5,68 @@ const tempo: IBeatTypeList = {
     {
       display: '大鼓',
       value: '1',
-      image: '圖片1.png'
+      image: 'drum.png'
     },
     {
       display: '小鼓',
       value: '2',
-      image: '圖片2.png'
+      image: 'snare.png'
     },
     {
       display: 'HiHat',
       value: '3',
-      image: '圖片3.png'
+      image: 'hihat.png'
     },
     {
       display: '大鼓＋小鼓',
       value: '4',
-      image: '圖片4.png'
+      image: 'drum_snare.png'
     },
     {
       display: '大鼓＋HiHat',
       value: '5',
-      image: '圖片5.png'
+      image: 'drum_hihat.png'
     },
     {
       display: '小鼓＋HiHat',
       value: '6',
-      image: '圖片6.png'
+      image: 'snare_hihat.png'
     },
     {
       display: 'tom1',
       value: '7',
-      image: '圖片7.png'
+      image: 'tom1.png'
     },
     {
       display: 'tom2',
       value: '8',
-      image: '圖片8.png'
+      image: 'tom2.png'
     },
     {
       display: 'tom3',
       value: '9',
-      image: '圖片9.png'
+      image: 'tom3.png'
     },
     {
-      display: '清空',
+      display: 'empty',
       value: '0',
-      image: '圖片0.png'
+      image: 'empty.png'
     },
     {
       display: 'double snare',
       value: '-',
-      image: '圖片-.png'
+      image: 'double_snare.png'
     },
     {
       display: 'double bass',
       value: '=',
-      image: '圖片=.png'
+      image: 'double_drum.png'
     }],
   layer2: [
     {
       display: 'crash',
       value: 'q',
-      image: '圖片q.png',
+      image: 'crash.png',
       classList: ['imageLayerSubMain']
     },
     {
@@ -100,39 +100,39 @@ const tempo: IBeatTypeList = {
       classList: ['imageLayerSubMainDown']
     },
     {
-      display: 'u',
+      display: 'snare_small',
       value: 'u',
-      image: '圖片u.png',
+      image: 'snare_small.png',
       classList: ['imageLayerSubMain']
     },
     {
-      display: 'i',
+      display: 'tom1_small',
       value: 'i',
-      image: '圖片i.png',
+      image: 'tom1_small.png',
       classList: ['imageLayerSubMain']
     },
     {
-      display: 'o',
+      display: 'tom2_small',
       value: 'o',
-      image: '圖片o.png',
+      image: 'tom2_small.png',
       classList: ['imageLayerSubMain']
     },
     {
-      display: 'p',
+      display: 'tom3_small',
       value: 'p',
-      image: '圖片p.png',
+      image: 'tom3_small.png',
       classList: ['imageLayerSubMain']
     },
     {
-      display: '[',
+      display: 'small_hihat',
       value: '[',
-      image: '圖片[.png',
+      image: 'small_hihat.png',
       classList: ['imageLayerSubMain']
     },
     {
-      display: '清空',
+      display: 'empty',
       value: ']',
-      image: '圖片0.png',
+      image: 'empty.png',
       classList: ['imageLayerSubMain']
     }]
 }

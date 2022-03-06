@@ -2,115 +2,8 @@
   <div>
     <!--        <button @click="createFile">Create file</button>-->
     <!--        <a v-show="downloadState" download="info.txt" :href="url">Download</a>-->
-    <div class="flex justify-between pt-3 pl-1 pr-1">
-      <div class="mb-5">
-          檔案名稱: <input type="text" class="mr-2" v-model="filename" required
-            @focus="enableKeyEvent = false" @blue="enableKeyEvent = true">
-          <button type="button" class="btn btn-green mr-3" @click="download">Download</button>
 
-          <button class="btn btn-green" @click="$refs.fileRef.click()">
-            <input type="file" ref="fileRef" name="file" class="hidden" @change="loadTextFromFile" />
-            <i class="fa fa-cloud-upload"></i> 上傳樂譜
-          </button>
-      </div>
-
-      <div>
-          <button
-            class="btn btn-green mb-1 mr-3 md:mb-0"
-            @click="print"
-          >Print</button>
-          <button v-if="showLib"
-            class="btn btn-green"
-            @click="showLib = !showLib"
-          >Hide</button>
-          <button v-else
-            class="btn btn-green"
-            @click="showLib = !showLib"
-          >Show</button>
-      </div>
-    </div>
-
-    <div v-for="(line, lineIdx) in sheetMusic" :key="lineIdx">
-      <div class="ml-1 mb-3">
-        <div v-if="showLib" class="flex justify-between">
-          <input class="text-xl font-bold w-auto" v-model="line.main" @focus="enableKeyEvent = false" @blur="enableKeyEvent = true">
-          <div class="w-auto">
-            節奏：<input class="text-xl font-bold" v-model="line.tempo" @change="changeTempo(lineIdx)" @focus="enableKeyEvent = false" @blur="enableKeyEvent = true">
-          </div>
-          <input class="text-xl font-bold w-auto" v-model="line.repeat" @focus="enableKeyEvent = false" @blur="enableKeyEvent = true">
-        </div>
-        <div v-else class="flex justify-between">
-            <span class="text-xl font-bold w-auto">{{ line.main }}</span>
-            <span class="text-xl font-bold w-auto">{{ line.repeat }}</span>
-        </div>
-      </div>
-
-      <div class="flex flex-wrap">
-        <!-- 一小節 -->
-        <template v-for="(subsection, subsectionIdx) in splitTemple(line)" :key="subsectionIdx">
-          <div class="backImage mb-3">
-            <!-- 每一拍 -->
-            <!-- <div class="imageContent" v-for="(beat, beatIdx) in subsection"
-              :key="beatIdx"
-              :class="chkIsSelected(lineIdx, subsectionIdx, beatIdx)"
-              @click="selectBeat(lineIdx, subsectionIdx, beatIdx)"
-            >
-              <img :src="beatLayer1Img(beat)" class="imageLayerMain">
-              <img :src="beatLayer2Img(lineIdx, subsectionIdx, beatIdx).src"
-                :class="beatLayer2Img(lineIdx, subsectionIdx, beatIdx).class"
-              >
-            </div> -->
-            <el-popover
-              placement="bottom"
-              :width="120"
-              :close-delay="10"
-              :key="beatIdx"
-              v-for="(beat, beatIdx) in subsection"
-              trigger="click"
-            >
-              <template #reference>
-                <div class="imageContent"
-                  :class="chkIsSelected(lineIdx, subsectionIdx, beatIdx)"
-                  @click="selectBeat(lineIdx, subsectionIdx, beatIdx)"
-                >
-                  <img :src="beatLayer1Img(beat)" class="imageLayerMain">
-                </div>
-              </template>
-              <el-table
-                :data="tempoLibLayer1"
-                @row-click="handleSelect"
-                stripe
-                height="300px"
-              >
-                <el-table-column width="50" property="value" label="按鍵"></el-table-column>
-                <!-- <el-table-column width="100" property="display" label="節奏"></el-table-column> -->
-                <el-table-column width="50" property="image" label="圖片">
-                  <template #default="scope">
-                    <img width='30' :src="scope.row.image">
-                  </template>
-                </el-table-column>
-              </el-table>
-            </el-popover>
-          </div>
-        </template>
-        <div v-show="showLib" style="display:flex;align-items: center;">
-          <div style="padding: 10px;">
-            <div @click="insertAt(lineIdx, 'add')"><i class="fas fa-plus fa-1x"></i></div>
-            <div @click="delLine(lineIdx)"><i class="fas fa-minus fa-1x"></i></div>
-            <div @click="insertAt(lineIdx, 'copy')"><i class="fas fa-copy fa-1x"></i></div>
-          </div>
-        </div>
-      </div>
-      <!--未來放字-->
-      <!--<div style="display: flex;">-->
-      <!--<div class="backImage" v-for="(one,idx) in temple.down" :key="idx" v-show="idx%4===0">-->
-      <!--<img src="/images/tom1.png" class="imageBox">-->
-      <!--<img src="/images/tom2.png" class="imageBox">-->
-      <!--<img src="/images/tom3.png" class="imageBox">-->
-      <!--<img src="/images/tom1.png" class="imageBox">-->
-      <!--</div>-->
-      <!--</div>-->
-    </div>
+    
   </div>
 </template>
 
@@ -135,6 +28,8 @@ export default defineComponent({
     const filename = ref<string>('')
     const enableKeyEvent = ref<boolean>(true)
     const showLib = ref<boolean>(true)
+    const layerType = ref<string>('layer1')
+    const barArea = ref<boolean>(true)
 
     const print = () => {
       showLib.value = false
@@ -285,6 +180,8 @@ export default defineComponent({
     }
 
     return {
+      layerType,
+      barArea,
       sheetMusic,
       enableKeyEvent,
       splitTemple,

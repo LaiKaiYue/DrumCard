@@ -6,14 +6,17 @@ module.exports = {
     ],
     options: {
       safelist: [/^el-/]
-    },
+    }
   },
   darkMode: false, // or 'media' or 'class'
   theme: {
     extend: {},
+    container: {
+      center: true
+    }
   },
   variants: {
-    extend: {},
+    extend: {}
   },
-  plugins: [],
+  plugins: []
 }
