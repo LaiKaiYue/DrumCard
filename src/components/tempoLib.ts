@@ -131,7 +131,7 @@ const tempo: IBeatTypeList = {
     },
     {
       display: 'empty',
-      value: ']',
+      value: '0',
       image: 'empty.png',
       classList: ['imageLayerSubMain']
     }]

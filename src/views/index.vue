@@ -10,7 +10,7 @@
               class="bg-gray-200 appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500" id="fileName" type="text"
               placeholder="File Name"
               @focus="enableKeyEvent = false"
-              @blue="enableKeyEvent = true"
+              @blur="enableKeyEvent = true"
             />
           </div>
 
@@ -26,8 +26,37 @@
             </button>
           </div>
         </div>
+
+        <!-- 分上下圖層區 -->
+        <div class="flex items-center">
+          <!-- Toggle B -->
+          <div class="flex items-center justify-center w-full">
+
+            <label for="toggleB" class="flex items-center cursor-pointer">
+              <!-- label -->
+              <div class="mr-3 text-gray-700 font-medium">
+                上層
+              </div>
+              <!-- toggle -->
+              <div class="relative">
+                <!-- input -->
+                <input type="checkbox" id="toggleB" class="sr-only" v-model="isLayerType1">
+                <!-- line -->
+                <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
+                <!-- dot -->
+                <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"></div>
+              </div>
+              <!-- label -->
+              <div class="ml-3 text-gray-700 font-medium">
+                下層
+              </div>
+            </label>
+
+          </div>
+        </div>
+
         <!-- 列印區 -->
-        <div class="flex items-cente">
+        <div class="flex items-center">
           <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center mr-1" @click="print">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v2a2 2 0 002 2h6a2 2 0 002-2v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" />
@@ -61,6 +90,8 @@
             <input
               v-model="line.main"
               class="appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500" type="text"
+              @focus="enableKeyEvent = false"
+              @blur="enableKeyEvent = true"
             />
           </div>
           <div class="flex-1">
@@ -69,12 +100,16 @@
               class="appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500" type="text"
               placeholder="節奏"
               id="tempo"
+              @focus="enableKeyEvent = false"
+              @blur="enableKeyEvent = true"
             />
           </div>
           <div class="flex-1">
             <input
               v-model="line.repeat"
               class="appearance-none border-2 border-gray-200 rounded w-full py-2 px-4 text-gray-700 leading-tight focus:outline-none focus:bg-white focus:border-purple-500" type="text"
+              @focus="enableKeyEvent = false"
+              @blur="enableKeyEvent = true"
             />
           </div>
         </div>
@@ -95,14 +130,14 @@
               <div :class="chkIsSelected(lineIndex, barIndex, noteIndex)"></div>
               <img :src="layer1Image(note)" class="imageLayerMain">
               <img :src="layer2Image(lineIndex, barIndex, noteIndex).src"
-              :class="layer2Image(lineIndex, barIndex, noteIndex).class">
+              :class="layer2Image(lineIndex, barIndex, noteIndex).class" style="z-index: 10">
             </div>
           </div>
           <div v-show="showLib" class="flex align-center ml-2">
             <div>
-              <div><i class="fas fa-plus fa-1x"></i></div>
-              <div><i class="fas fa-minus fa-1x"></i></div>
-              <div><i class="fas fa-copy fa-1x"></i></div>
+              <div @click="insertAt(lineIndex, 'add')"><i class="fas fa-plus fa-1x"></i></div>
+              <div @click="delLine(lineIndex)"><i class="fas fa-minus fa-1x"></i></div>
+              <div @click="insertAt(lineIndex, 'copy')"><i class="fas fa-copy fa-1x"></i></div>
             </div>
           </div>
         </div>
@@ -123,15 +158,16 @@ import GlobalListener from '@/components/common/GlobalListener'
 export default defineComponent({
   name: 'index',
   setup (props, context) {
-    const notation = ref<Array<ILine>>([{ layer1: '0000000000000000', layer2: ']]]]]]]]]]]]]]]]', tempo: '4444', main: 'line1', repeat: '*4' }])
-    const point: Point = new Point()
-    const beatUtils = new BeatUtils(point, notation)
+    const notation = ref<Array<ILine>>([{ layer1: '0000000000000000', layer2: '0000000000000000', tempo: '4444', main: 'line1', repeat: '*4' }])
+    const NotationPosition: Point = new Point()
+    const beatUtils = new BeatUtils(NotationPosition, notation)
     const globalListenser = new GlobalListener(beatUtils, context)
     const showLib = ref(true)
     const filename = ref('')
-    const layerType = ref<string>('layer1')
+    const isLayerType1 = ref<boolean>(true)
+    const enableKeyEvent = ref<boolean>(true)
 
-    beatUtils.setPoint(0, 0)
+    NotationPosition.setPoint(0, 0)
 
     const print = () => {
       showLib.value = false
@@ -139,6 +175,10 @@ export default defineComponent({
         window.print()
       })
     }
+
+    const layerType = computed(() => {
+      return isLayerType1.value ? 'layer1' : 'layer2'
+    })
 
     /**
      * 設定拍子
@@ -153,7 +193,7 @@ export default defineComponent({
       const isLayerBeatExist = tempoLib[layerType.value].some((_beatType: IBeatType) => _beatType.value === beatType)
       if (!isLayerBeatExist) return
 
-      const row = point.getPoint().row
+      const row = NotationPosition.getPoint().row
       const line = notation.value[row][layerType.value]
 
       notation.value[row][layerType.value] = beatUtils.replaceBeat(line, beatType)
@@ -162,7 +202,7 @@ export default defineComponent({
         if (isAddNewLine) {
           notation.value.push({
             layer1: '0000000000000000',
-            layer2: ']]]]]]]]]]]]]]]]',
+            layer2: '0000000000000000',
             main: '',
             repeat: '',
             tempo: '4444'
@@ -211,11 +251,44 @@ export default defineComponent({
       return col
     }
 
+    /**
+     * 新增、複製Line
+     * @param lineIdx {number} - 哪一列
+     * @param type {string} - 新增或複製
+     */
+    const insertAt = (lineIdx: number, type: string) => {
+      if (type === 'add') {
+        notation.value.splice(lineIdx + 1, 0, {
+          layer1: '0000000000000000',
+          layer2: '0000000000000000',
+          main: '',
+          repeat: '',
+          tempo: '4444'
+        })
+      } else {
+        const newLine = notation.value[lineIdx]
+        notation.value.splice(lineIdx + 1, 0, JSON.parse(JSON.stringify(newLine)))
+      }
+      beatUtils.setTotalLine(notation.value.length)
+    }
+
+    /**
+     * 刪除Line
+     * @param lineIdx {number} - 要刪除的列
+     */
+    const delLine = (lineIdx: number) => {
+      if (notation.value.length === 1) return
+      notation.value.splice(lineIdx, 1)
+      const col = NotationPosition.getPoint().col
+      NotationPosition.setPoint(notation.value.length - 1, col)
+      beatUtils.setTotalLine(notation.value.length)
+    }
+
     // 選中的位置
     const chkIsSelected = computed(() => {
       return (line: number, barIndex: number, noteIndex: number) => {
         const col = getCol(line, barIndex, noteIndex)
-        const _point = point.getPoint()
+        const _point = NotationPosition.getPoint()
         if (line === _point.row && col === _point.col) return 'chooseItem'
       }
     })
@@ -228,7 +301,7 @@ export default defineComponent({
      */
     const selectBeat = (lineIndex: number, barIndex: number, noteIndex: number): void => {
       const col = getCol(lineIndex, barIndex, noteIndex)
-      point.setPoint(lineIndex, col)
+      NotationPosition.setPoint(lineIndex, col)
     }
 
     // 轉換第一層圖片
@@ -245,23 +318,32 @@ export default defineComponent({
       return (line: number, barIndex: number, noteIndex: number) => {
         const col = beatUtils.getCol(line, barIndex, noteIndex)
         const layer2 = notation.value[line].layer2
-        const image = tempoLib.layer2.find(temp => temp.value === layer2[col]) || { image: '', classList: [] }
+        const image = tempoLib.layer2.find(temp => temp.value === layer2[col]) || { image: 'empty.png', classList: ['imageLayerSubMain'] }
         const img_src = `/images/${image.image}`
         const img_class = image.classList
         return { src: img_src, class: img_class }
       }
     })
 
+    // 監聽是否在編輯中
+    watch(() => enableKeyEvent.value, (value) => {
+      globalListenser.setDisabled(value)
+    })
+
     return {
+      enableKeyEvent,
       showLib,
       filename,
       notation,
       splitTemple,
+      isLayerType1,
       selectBeat,
       layer1Image,
       layer2Image,
       print,
-      chkIsSelected
+      chkIsSelected,
+      insertAt,
+      delLine
     }
   }
 })
@@ -296,5 +378,11 @@ export default defineComponent({
   border: 3px brown solid;
   width: 70px;
   height: 70px;
+}
+
+/* Toggle B */
+input:checked ~ .dot {
+  transform: translateX(100%);
+  background-color: #48bb78;
 }
 </style>

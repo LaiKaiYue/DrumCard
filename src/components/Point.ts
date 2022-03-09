@@ -1,5 +1,6 @@
 import { ref, Ref, UnwrapRef } from 'vue'
-export default class Point {
+import IPoint from '@/interface/IPoint'
+export default class Point implements IPoint {
   private row: Ref<UnwrapRef<number>>
   private col: Ref<UnwrapRef<number>>
   private totalLine: Ref<UnwrapRef<number>>

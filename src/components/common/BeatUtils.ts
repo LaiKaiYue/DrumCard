@@ -1,6 +1,6 @@
 import { computed, inject, Ref, ref, UnwrapRef, watch } from 'vue'
 import { IBeatType, ILine } from '@/interface/IBeatLib'
-import Point from '@/components/Point'
+import IPoint from '@/interface/IPoint'
 import tempoLib from '@/components/tempoLib'
 import { IStore } from '@/store'
 
@@ -8,19 +8,17 @@ export interface IBeatUtils {
   setBeatType (beatType: string, moveAction: string): void;
   replaceBeat (line: string, beatType: string): void;
   setLayer (layer: string): void;
-  getPoint(row: number, col: number): { row: number; col: number };
-  setPoint(row: number, col: number): void;
   getIsAddNewLine(): boolean;
 }
 
 export default class BeatUtils implements IBeatUtils {
-  private point: Point
+  private point: IPoint
   private layer: string
   private isAddNewLine: boolean
   private notation: Ref<UnwrapRef<Array<ILine>>>;
   private store: IStore | undefined;
 
-  constructor (_point: Point, _notation: Ref<UnwrapRef<Array<ILine>>>) {
+  constructor (_point: IPoint, _notation: Ref<UnwrapRef<Array<ILine>>>) {
     this.point = _point
     this.isAddNewLine = false
     this.layer = 'layer1'
@@ -49,7 +47,7 @@ export default class BeatUtils implements IBeatUtils {
 
   replaceBeat = (line: string, beatType: string): string => {
     if (!beatType) beatType = '0'
-    const { col } = this.getPoint()
+    const { col } = this.point.getPoint()
 
     console.log(col)
     console.log(line)
@@ -65,7 +63,7 @@ export default class BeatUtils implements IBeatUtils {
     const isLayerBeatExist = tempoLib[this.layer].some((_beatType: IBeatType) => _beatType.value === beatType)
     if (!isLayerBeatExist) return
 
-    const row = this.getPoint().row
+    const row = this.point.getPoint().row
     const line = this.notation.value[row][this.layer]
 
     this.notation.value[row][this.layer] = this.replaceBeat(line, beatType)
@@ -74,7 +72,7 @@ export default class BeatUtils implements IBeatUtils {
       if (isAddNewLine) {
         this.notation.value.push({
           layer1: '0000000000000000',
-          layer2: ']]]]]]]]]]]]]]]]',
+          layer2: '0000000000000000',
           main: '',
           repeat: '',
           tempo: '4444'
@@ -92,21 +90,13 @@ export default class BeatUtils implements IBeatUtils {
     this.layer = layer
   }
 
-  getPoint (): {row: number; col: number} {
-    return this.point.getPoint()
-  }
-
-  setPoint (row: number, col: number): void {
-    this.point.setPoint(row, col)
-  }
-
   getTempo (line: number, subsection: number): number {
     return Number(this.notation.value[line].tempo.split('')[subsection])
   }
 
   selectBeat (line: number, subsection: number, beat: number): void {
     const col = this.getCol(line, subsection, beat)
-    this.setPoint(line, col)
+    this.point.setPoint(line, col)
   }
 
   getIsAddNewLine (): boolean {
@@ -165,7 +155,7 @@ export default class BeatUtils implements IBeatUtils {
   chkIsSelected = computed(() => {
     return (line: number, subsection: number, beat: number) => {
       const col = this.getCol(line, subsection, beat)
-      const Point = this.getPoint()
+      const Point = this.point.getPoint()
       if (line === Point.row && col === Point.col) return 'chooseItem'
     }
   })
