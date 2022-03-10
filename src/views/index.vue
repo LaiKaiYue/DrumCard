@@ -126,14 +126,47 @@
           <!-- 一小節 -->
           <div class="backImage" v-for="(bar, barIndex) in splitTemple(line)" :key="barIndex">
             <!-- 4拍 -->
-            <div class="imageContent cursor-pointer" v-for="(note, noteIndex) in bar" :key="noteIndex"
+            <el-popover
+                placement="bottom"
+                :width="120"
+                :close-delay="10"
+                 v-for="(note, noteIndex) in bar"
+                 :key="noteIndex"
+                trigger="click"
+              >
+                <template #reference>
+                  <div class="imageContent cursor-pointer"
+                    @click="selectBeat(lineIndex, barIndex, noteIndex)"
+                  >
+                    <div :class="chkIsSelected(lineIndex, barIndex, noteIndex)"></div>
+                    <img :src="layer1Image(note)" class="imageLayerMain">
+                    <img :src="layer2Image(lineIndex, barIndex, noteIndex).src"
+                    :class="layer2Image(lineIndex, barIndex, noteIndex).class" style="z-index: 10">
+                  </div>
+                </template>
+                <el-table
+                  :data="tempoLibLayer1"
+                  @row-click="handleSelect"
+                  stripe
+                  height="300px"
+                >
+                  <el-table-column width="50" property="value" label="按鍵"></el-table-column>
+                  <!-- <el-table-column width="100" property="display" label="節奏"></el-table-column> -->
+                  <el-table-column width="50" property="image" label="圖片">
+                    <template #default="scope">
+                      <img width='30' :src="scope.row.image">
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </el-popover>
+            <!-- <div class="imageContent cursor-pointer" v-for="(note, noteIndex) in bar" :key="noteIndex"
               @click="selectBeat(lineIndex, barIndex, noteIndex)"
             >
               <div :class="chkIsSelected(lineIndex, barIndex, noteIndex)"></div>
               <img :src="layer1Image(note)" class="imageLayerMain">
               <img :src="layer2Image(lineIndex, barIndex, noteIndex).src"
               :class="layer2Image(lineIndex, barIndex, noteIndex).class" style="z-index: 10">
-            </div>
+            </div> -->
           </div>
           <div v-show="showLib" class="flex align-center ml-2">
             <div>
@@ -261,6 +294,17 @@ export default defineComponent({
       }
     })
 
+    // const tempoLibLayer1 = tempoLib.layer1
+    const tempoLibLayer1 = computed(() => {
+      return tempoLib[layerType.value].map((_layer1) => {
+        return {
+          display: _layer1.display,
+          value: _layer1.value,
+          image: `/images/${_layer1.image}`
+        }
+      })
+    })
+
     const getTempo = (lineIndex: number, barIndex: number): number => {
       return Number(notation.value[lineIndex].tempo.split('')[barIndex])
     }
@@ -355,6 +399,10 @@ export default defineComponent({
       ev.target.value = null
     }
 
+    const handleSelect = (row: IBeatType, column: object, event: object) => {
+      setBeatType(row.value, 'next')
+    }
+
     return {
       enableKeyEvent,
       showLib,
@@ -370,7 +418,9 @@ export default defineComponent({
       insertAt,
       delLine,
       download,
-      loadTextFromFile
+      loadTextFromFile,
+      tempoLibLayer1,
+      handleSelect
     }
   }
 })
