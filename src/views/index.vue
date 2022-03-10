@@ -21,6 +21,8 @@
             </button>
 
             <button class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center ml-1" @click="$refs.fileRef.click()">
+              <input type="file" ref="fileRef" name="file" class="hidden" @change="loadTextFromFile" />
+
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
               <span>Upload</span>
             </button>
@@ -180,6 +182,11 @@ export default defineComponent({
       return isLayerType1.value ? 'layer1' : 'layer2'
     })
 
+    // 監聽是否在編輯中
+    watch(() => enableKeyEvent.value, (value) => {
+      globalListenser.setDisabled(value)
+    })
+
     /**
      * 設定拍子
      * @param beatType {string} - 節拍屬性
@@ -233,6 +240,27 @@ export default defineComponent({
       }
     })
 
+    // 轉換第一層圖片
+    const layer1Image = computed(() => {
+      return (beat: string) => {
+        const _obj = tempoLib.layer1.find(temp => temp.value === beat)
+        if (!_obj) return ''
+        return `/images/${_obj.image}`
+      }
+    })
+
+    // 轉換第二層圖片
+    const layer2Image = computed(() => {
+      return (line: number, barIndex: number, noteIndex: number) => {
+        const col = beatUtils.getCol(line, barIndex, noteIndex)
+        const layer2 = notation.value[line].layer2
+        const image = tempoLib.layer2.find(temp => temp.value === layer2[col]) || { image: 'empty.png', classList: ['imageLayerSubMain'] }
+        const img_src = `/images/${image.image}`
+        const img_class = image.classList
+        return { src: img_src, class: img_class }
+      }
+    })
+
     const getTempo = (lineIndex: number, barIndex: number): number => {
       return Number(notation.value[lineIndex].tempo.split('')[barIndex])
     }
@@ -250,6 +278,15 @@ export default defineComponent({
       col += beat
       return col
     }
+
+    // 選中的位置
+    const chkIsSelected = computed(() => {
+      return (line: number, barIndex: number, noteIndex: number) => {
+        const col = getCol(line, barIndex, noteIndex)
+        const _point = NotationPosition.getPoint()
+        if (line === _point.row && col === _point.col) return 'chooseItem'
+      }
+    })
 
     /**
      * 新增、複製Line
@@ -284,15 +321,6 @@ export default defineComponent({
       beatUtils.setTotalLine(notation.value.length)
     }
 
-    // 選中的位置
-    const chkIsSelected = computed(() => {
-      return (line: number, barIndex: number, noteIndex: number) => {
-        const col = getCol(line, barIndex, noteIndex)
-        const _point = NotationPosition.getPoint()
-        if (line === _point.row && col === _point.col) return 'chooseItem'
-      }
-    })
-
     /**
      * click選位置
      * @param line {array} - 行數
@@ -304,31 +332,28 @@ export default defineComponent({
       NotationPosition.setPoint(lineIndex, col)
     }
 
-    // 轉換第一層圖片
-    const layer1Image = computed(() => {
-      return (beat: string) => {
-        const _obj = tempoLib.layer1.find(temp => temp.value === beat)
-        if (!_obj) return ''
-        return `/images/${_obj.image}`
-      }
-    })
+    const download = () => {
+      const _line = JSON.stringify(notation.value)
+      const data = new Blob([_line], { type: 'text/plain' })
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(data)
+      a.download = filename.value
+      a.click()
+    }
 
-    // 轉換第二層圖片
-    const layer2Image = computed(() => {
-      return (line: number, barIndex: number, noteIndex: number) => {
-        const col = beatUtils.getCol(line, barIndex, noteIndex)
-        const layer2 = notation.value[line].layer2
-        const image = tempoLib.layer2.find(temp => temp.value === layer2[col]) || { image: 'empty.png', classList: ['imageLayerSubMain'] }
-        const img_src = `/images/${image.image}`
-        const img_class = image.classList
-        return { src: img_src, class: img_class }
-      }
-    })
+    // 讀入檔案
+    const loadTextFromFile = (ev: any) => {
+      const file = ev.target.files[0]
+      const reader = new FileReader()
 
-    // 監聽是否在編輯中
-    watch(() => enableKeyEvent.value, (value) => {
-      globalListenser.setDisabled(value)
-    })
+      reader.onload = (e: any) => {
+        notation.value = JSON.parse(e.target.result)
+        beatUtils.setTotalLine(notation.value.length)
+        NotationPosition.setPoint(0, 0)
+      }
+      reader.readAsText(file)
+      ev.target.value = null
+    }
 
     return {
       enableKeyEvent,
@@ -343,7 +368,9 @@ export default defineComponent({
       print,
       chkIsSelected,
       insertAt,
-      delLine
+      delLine,
+      download,
+      loadTextFromFile
     }
   }
 })
