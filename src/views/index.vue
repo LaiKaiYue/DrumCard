@@ -2,7 +2,7 @@
   <div class="container w-full mx-auto text-center">
     <div class="w-auto inline-block">
       <!-- 功能列 -->
-      <div class="flex justify-between pt-3 pb-3">
+      <div class="flex flex-wrap justify-between pt-3 pb-3">
         <!-- 下載/上傳區 -->
         <div class="flex items-center">
           <div class="mr-1">
@@ -87,7 +87,7 @@
       <div v-for="(line, lineIndex) in notation" :key="lineIndex">
         <!-- 每一個段落 -->
         <!-- 標題 -->
-        <div v-show="showLib" class="flex justify-between items-center">
+        <div v-show="showLib" class="flex flex-wrap justify-between items-center">
           <div class="flex-1">
             <input
               v-model="line.main"
@@ -115,7 +115,7 @@
             />
           </div>
         </div>
-        <div v-show="!showLib" class="flex justify-between">
+        <div v-show="!showLib" class="flex flex-wrap justify-between">
             <span class="text-xl font-bold w-auto">{{ line.main }}</span>
             <span class="text-xl font-bold w-auto">{{ line.repeat }}</span>
         </div>
